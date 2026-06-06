@@ -44,7 +44,7 @@ cd maze_explorer_agent
 
 # Create and activate a virtual environment (optional but recommended)
 python -m venv .venv
-.venv\Scripts\activate      # Windows
+.venv\Scripts\activate.bat      # Windows
 source .venv/bin/activate   # macOS / Linux
 
 # Install dependencies
@@ -54,7 +54,7 @@ pip install pygame
 ### Run
 
 ```bash
-python astar_maze.py
+python main.py
 ```
 
 ---
@@ -91,8 +91,16 @@ The **Manhattan distance** heuristic is used since movement is restricted to 4 d
 
 ```
 maze_explorer_agent/
-├── astar_maze.py   # Main script — algorithm, rendering, and controls
-└── README.md
+├── README.md
+├── main.py                 # Core entry point (initializes Pygame and runs the main loop)
+└── src/
+    ├── __init__.py
+    ├── config.py           # Screen dimensions, settings, and color palettes
+    ├── node.py             # Nodo class representing grid cells and their states
+    ├── grid.py             # Grid creation and management functions
+    ├── astar.py            # A* search algorithm, Manhattan heuristic, and path reconstruction
+    ├── maze_gen.py         # Maze generation algorithms (currently random walls)
+    └── renderer.py         # Pygame drawing functions for rendering grid and nodes
 ```
 
 ---
