@@ -1,21 +1,36 @@
 import pygame
 from src.config import (
-    EMPTY_COLOR, GRID_COLOR, UI_BG_COLOR, UI_TEXT_COLOR,
-    SLIDER_TRACK_COLOR, SLIDER_HANDLE_COLOR, BUTTON_COLOR,
-    BUTTON_HOVER_COLOR, BUTTON_ACTIVE_COLOR, BUTTON_TEXT_COLOR
+    EMPTY_COLOR, GRID_COLOR, UI_BG_COLOR, UI_TEXT_COLOR, UI_BORDER_COLOR,
+    SLIDER_TRACK_COLOR, SLIDER_HANDLE_COLOR,
+    BUTTON_COLOR, BUTTON_HOVER_COLOR, BUTTON_ACTIVE_COLOR, BUTTON_TEXT_COLOR,
+    START_COLOR, END_COLOR, CLOSED_COLOR, OPEN_COLOR, PATH_COLOR
 )
 
-# Cache de fuentes para evitar cargarlas repetidamente
+# ─── Fuentes del sistema ──────────────────────────────────────────────────────
 _fonts = {}
 def get_font(size, bold=False):
     key = (size, bold)
     if key not in _fonts:
         pygame.font.init()
-        try:
-            _fonts[key] = pygame.font.SysFont("Arial", size, bold=bold)
-        except:
-            _fonts[key] = pygame.font.SysFont(None, size, bold=bold)
+        # Intentar fuentes sans-serif modernas
+        for name in ["Segoe UI", "Arial", "Helvetica", "sans-serif", None]:
+            try:
+                _fonts[key] = pygame.font.SysFont(name, size, bold=bold)
+                break
+            except:
+                continue
     return _fonts[key]
+
+def _draw_pixel_border(win, rect, thickness=2):
+    """Marco estilo RPG: borde doble con esquinas marcadas."""
+    r = rect
+    outer = pygame.Rect(r.x-thickness, r.y-thickness, r.width+thickness*2, r.height+thickness*2)
+    pygame.draw.rect(win, (100, 70, 30), outer, thickness)          # borde exterior
+    pygame.draw.rect(win, (60,  40, 15), r, thickness)              # borde interior
+    # esquinas brillantes
+    for cx, cy in [(outer.x, outer.y), (outer.right-1, outer.y),
+                   (outer.x, outer.bottom-1), (outer.right-1, outer.bottom-1)]:
+        pygame.draw.circle(win, (200, 150, 50), (cx, cy), thickness)
 
 def draw_grid(win, rows, width):
     gap = width // rows
@@ -25,84 +40,113 @@ def draw_grid(win, rows, width):
             pygame.draw.line(win, GRID_COLOR, (j * gap, 0), (j * gap, width))
 
 def draw_ui(win, app_state):
-    # Fondo del panel de control
-    pygame.draw.rect(win, UI_BG_COLOR, (0, app_state.grid_width, app_state.grid_width, app_state.ui_height))
-    # Línea separadora
-    pygame.draw.line(win, (15, 23, 42), (0, app_state.grid_width), (app_state.grid_width, app_state.grid_width), 2)
-    
+    gw = app_state.grid_width
+    sw = app_state.sidebar_width
+
+    # ── Fondo panel ──────────────────────────────────────────────────────────
+    pygame.draw.rect(win, UI_BG_COLOR, (gw, 0, sw, gw))
+
+    # Línea separadora pizarra (vertical)
+    pygame.draw.line(win, UI_BORDER_COLOR, (gw, 0), (gw, gw), 1)
+
     mouse_pos = pygame.mouse.get_pos()
-    font_bold = get_font(14, True)
-    font_normal = get_font(13, False)
+    font_sm   = get_font(12, False)
+    font_md   = get_font(14, True)
+    font_lg   = get_font(16, True)
+    font_title = get_font(18, True)
+
+    # ── TITULO ───────────────────────────────────────────────────────────────
+    title_txt = font_title.render("Maze Explorer", True, UI_TEXT_COLOR)
+    win.blit(title_txt, title_txt.get_rect(centerx=gw + sw // 2, y=20).topleft)
     
-    # --- SLIDER DE VELOCIDAD ---
-    label_speed = font_bold.render("VELOCIDAD", True, UI_TEXT_COLOR)
-    win.blit(label_speed, (20, app_state.grid_width + 15))
-    
-    # Dibujar pista del slider
-    pygame.draw.rect(win, SLIDER_TRACK_COLOR, app_state.slider_rect, border_radius=4)
-    
-    # Posición de la manija
-    handle_x = app_state.slider_rect.x + int(app_state.slider_val * app_state.slider_rect.width)
-    handle_y = app_state.slider_rect.y + app_state.slider_rect.height // 2
-    
-    # Dibujar manija del slider (con borde blanco)
-    pygame.draw.circle(win, (255, 255, 255), (handle_x, handle_y), app_state.slider_handle_radius)
-    pygame.draw.circle(win, SLIDER_HANDLE_COLOR, (handle_x, handle_y), app_state.slider_handle_radius - 2)
-    
-    # Texto de retraso
+    subtitle_txt = font_sm.render("A* Dungeon Visualizer", True, (120, 130, 150))
+    win.blit(subtitle_txt, subtitle_txt.get_rect(centerx=gw + sw // 2, y=42).topleft)
+
+    # ── LEYENDA ───────────────────────────────────────────────────────────────
+    legend = [
+        (START_COLOR, "Inicio (Héroe)"),
+        (END_COLOR, "Meta (Cofre)"),
+        (CLOSED_COLOR, "Explorado"),
+        (OPEN_COLOR, "Frontera"),
+        (PATH_COLOR, "Ruta óptima"),
+    ]
+    ly = 85
+    for color, label in legend:
+        # Dibujar un bloque con esquinas ligeramente redondeadas
+        pygame.draw.rect(win, color, (gw + 30, ly + 2, 12, 12), border_radius=2)
+        pygame.draw.rect(win, UI_BORDER_COLOR, (gw + 30, ly + 2, 12, 12), 1, border_radius=2)
+        win.blit(font_sm.render(label, True, (160, 175, 195)), (gw + 52, ly))
+        ly += 25
+
+    # ── SLIDER ───────────────────────────────────────────────────────────────
+    lbl = font_sm.render("VELOCIDAD DE BÚSQUEDA", True, (160, 175, 195))
+    win.blit(lbl, (gw + 20, 295))
+
+    # Pista del slider con marco
+    tr = app_state.slider_rect
+    pygame.draw.rect(win, SLIDER_TRACK_COLOR, tr, border_radius=4)
+    pygame.draw.rect(win, UI_BORDER_COLOR, tr, 1, border_radius=4)
+
+    # Relleno proporcional
+    fill_w = int(app_state.slider_val * tr.width)
+    if fill_w > 2:
+        pygame.draw.rect(win, SLIDER_HANDLE_COLOR, (tr.x, tr.y, fill_w, tr.height), border_radius=4)
+
+    # Manija circular moderna (color blanco con borde índigo)
+    hx = tr.x + fill_w
+    hy = tr.y + tr.height // 2
+    hr = app_state.slider_handle_radius
+    pygame.draw.circle(win, (255, 255, 255), (hx, hy), hr)
+    pygame.draw.circle(win, SLIDER_HANDLE_COLOR, (hx, hy), hr, 2)
+
     delay = app_state.get_delay()
-    delay_text = f"Retraso: {delay} ms" if delay > 0 else "Sin retraso"
-    txt_delay = font_normal.render(delay_text, True, UI_TEXT_COLOR)
-    win.blit(txt_delay, (20, app_state.grid_width + 55))
-    
-    # --- BOTÓN INICIAR ---
+    delay_txt = f"delay: {delay}ms" if delay > 0 else "velocidad: MAX"
+    win.blit(font_sm.render(delay_txt, True, (120, 130, 150)), (gw + 20, 335))
+
+    # ── BOTÓN INICIAR ─────────────────────────────────────────────────────────
     if app_state.is_running:
-        start_btn_color = BUTTON_ACTIVE_COLOR
-        start_text = "Buscando..."
-    else:
-        if app_state.start_rect.collidepoint(mouse_pos):
-            start_btn_color = BUTTON_HOVER_COLOR
+        if app_state.is_paused:
+            bc = BUTTON_HOVER_COLOR if app_state.start_rect.collidepoint(mouse_pos) else BUTTON_COLOR
+            bt = "> reanudar [SPC]"
         else:
-            start_btn_color = BUTTON_COLOR
-        start_text = "Iniciar (Espacio)"
-        
-    pygame.draw.rect(win, start_btn_color, app_state.start_rect, border_radius=6)
-    txt_start = font_bold.render(start_text, True, BUTTON_TEXT_COLOR)
-    start_text_rect = txt_start.get_rect(center=app_state.start_rect.center)
-    win.blit(txt_start, start_text_rect)
-    
-    # --- BOTÓN REINICIAR ---
-    if app_state.reset_rect.collidepoint(mouse_pos):
-        reset_btn_color = BUTTON_HOVER_COLOR
+            bc = BUTTON_ACTIVE_COLOR
+            bt = "|| pausar [SPC]"
+    elif app_state.start_rect.collidepoint(mouse_pos):
+        bc = BUTTON_HOVER_COLOR
+        bt = "> iniciar [SPC]"
     else:
-        reset_btn_color = BUTTON_COLOR
-        
-    pygame.draw.rect(win, reset_btn_color, app_state.reset_rect, border_radius=6)
-    txt_reset = font_bold.render("Reiniciar (R)", True, BUTTON_TEXT_COLOR)
-    reset_text_rect = txt_reset.get_rect(center=app_state.reset_rect.center)
-    win.blit(txt_reset, reset_text_rect)
-    
-    # --- ESTADO DEL ALGORITMO ---
-    status_text = "Listo"
-    status_color = (203, 213, 225) # Slate 300
+        bc = BUTTON_COLOR
+        bt = "> iniciar [SPC]"
+
+    pygame.draw.rect(win, bc, app_state.start_rect, border_radius=6)
+    pygame.draw.rect(win, UI_BORDER_COLOR, app_state.start_rect, 1, border_radius=6)
+    win.blit(font_md.render(bt, True, BUTTON_TEXT_COLOR),
+             font_md.render(bt, True, BUTTON_TEXT_COLOR).get_rect(center=app_state.start_rect.center).topleft)
+
+    # ── BOTÓN REINICIAR ───────────────────────────────────────────────────────
+    bc2 = BUTTON_HOVER_COLOR if app_state.reset_rect.collidepoint(mouse_pos) else BUTTON_COLOR
+    pygame.draw.rect(win, bc2, app_state.reset_rect, border_radius=6)
+    pygame.draw.rect(win, UI_BORDER_COLOR, app_state.reset_rect, 1, border_radius=6)
+    rt = "> nuevo [R]"
+    win.blit(font_md.render(rt, True, BUTTON_TEXT_COLOR),
+             font_md.render(rt, True, BUTTON_TEXT_COLOR).get_rect(center=app_state.reset_rect.center).topleft)
+
+    # ── ESTADO ────────────────────────────────────────────────────────────────
     if app_state.path_found is True:
-        status_text = "¡Ruta encontrada!"
-        status_color = (74, 222, 128) # Green 400
+        st, sc = "*** RUTA ENCONTRADA ***", (74, 222, 128)
     elif app_state.path_found is False:
-        status_text = "Sin ruta"
-        status_color = (248, 113, 113) # Red 400
+        st, sc = "!!! SIN RUTA !!!", (248, 113, 113)
     elif app_state.is_running:
-        status_text = "Buscando..."
-        status_color = (96, 165, 250) # Blue 400
-        
-    lbl_status = font_bold.render("ESTADO:", True, UI_TEXT_COLOR)
-    win.blit(lbl_status, (300, app_state.grid_width + 65))
-    
-    txt_status = font_bold.render(status_text, True, status_color)
-    win.blit(txt_status, (365, app_state.grid_width + 65))
+        st, sc = "... explorando ...", (96, 165, 250)
+    else:
+        st, sc = "[ listo ]", (156, 163, 175)
+
+    status_surf = font_lg.render(st, True, sc)
+    win.blit(status_surf, status_surf.get_rect(centerx=gw + sw // 2, y=545).topleft)
+
 
 def draw(win, grid, rows, width, app_state=None):
-    win.fill(EMPTY_COLOR)
+    win.fill((18, 14, 10))
     for row in grid:
         for spot in row:
             spot.draw(win)
@@ -110,4 +154,3 @@ def draw(win, grid, rows, width, app_state=None):
     if app_state is not None:
         draw_ui(win, app_state)
     pygame.display.update()
-

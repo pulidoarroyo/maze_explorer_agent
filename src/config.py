@@ -1,27 +1,31 @@
-# Paleta de Colores
-CLOSED_COLOR = (255, 99, 71)    # Rojo Tomate (Nodos explorados)
-OPEN_COLOR = (144, 238, 144)    # Verde Claro (Nodos en frontera)
-PATH_COLOR = (255, 215, 0)      # Dorado (Ruta óptima)
-START_COLOR = (0, 191, 255)     # Azul (Inicio)
-END_COLOR = (138, 43, 226)      # Violeta (Meta)
-EMPTY_COLOR = (245, 245, 245)   # Blanco Humo (Camino libre)
-WALL_COLOR = (47, 79, 79)       # Gris Oscuro (Obstáculos/Paredes)
-GRID_COLOR = (200, 200, 200)    # Líneas de cuadrícula
+import pygame
 
-# Colores de la interfaz de usuario (UI)
-UI_BG_COLOR = (30, 41, 59)          # Slate 800 (Fondo panel)
-UI_TEXT_COLOR = (241, 245, 249)      # Slate 100 (Texto general)
-SLIDER_TRACK_COLOR = (71, 85, 105)   # Slate 600 (Pista del slider)
-SLIDER_HANDLE_COLOR = (59, 130, 246)  # Blue 500 (Asa del slider)
-BUTTON_COLOR = (71, 85, 105)         # Slate 600 (Botón)
-BUTTON_HOVER_COLOR = (51, 65, 85)     # Slate 700 (Botón Hover)
-BUTTON_ACTIVE_COLOR = (37, 99, 235)   # Blue 600 (Botón Activo)
-BUTTON_TEXT_COLOR = (255, 255, 255)   # Blanco (Texto del botón)
+# ─── Paleta pixel-art / dungeon ───────────────────────────────────────────────
+WALL_COLOR      = (40,  30,  20)   # base de bloque (no se usa directamente)
+EMPTY_COLOR     = (18,  14,  10)   # suelo del dungeon
+GRID_COLOR      = (30,  24,  16)   # líneas de cuadrícula (casi invisibles)
 
-# Dimensiones y Configuración
-WIDTH = 600
-UI_HEIGHT = 100
-HEIGHT = WIDTH + UI_HEIGHT
-ROWS = 30
-CAPTION = "Agente Explorador A* con Control de Velocidad"
+CLOSED_COLOR    = (30,  60,  90)   # nodos explorados: azul dungeon
+OPEN_COLOR      = (80, 160,  60)   # frontera: verde mágico
+PATH_COLOR      = (255, 200,   0)  # ruta: dorado brillante
+START_COLOR     = (50, 200,  80)   # inicio (verde héroe)
+END_COLOR       = (220, 160,   0)  # meta (dorado cofre)
 
+# UI - Estilo moderno oscuro / minimalista
+UI_BG_COLOR          = (18,  24,  38)    # Gris azulado muy oscuro y elegante
+UI_TEXT_COLOR        = (243, 244, 246)   # Blanco roto para alta legibilidad
+UI_BORDER_COLOR      = (45,  55,  72)    # Gris pizarra suave
+SLIDER_TRACK_COLOR   = (30,  41,  59)    # Fondo del slider
+SLIDER_HANDLE_COLOR  = (99,  102, 241)   # Índigo vibrante moderno
+BUTTON_COLOR         = (31,  41,  55)    # Botón base
+BUTTON_HOVER_COLOR   = (55,  65,  81)    # Botón hover
+BUTTON_ACTIVE_COLOR  = (79,  70,  229)   # Índigo activo (buscando/pausado)
+BUTTON_TEXT_COLOR    = (255, 255, 255)   # Texto de botón blanco puro
+
+# ─── Dimensiones ──────────────────────────────────────────────────────────────
+GRID_WIDTH     = 600
+SIDEBAR_WIDTH  = 250
+WIDTH          = GRID_WIDTH + SIDEBAR_WIDTH
+HEIGHT         = GRID_WIDTH
+ROWS           = 30
+CAPTION        = "Maze Explorer"

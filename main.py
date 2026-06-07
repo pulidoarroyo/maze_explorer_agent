@@ -1,26 +1,28 @@
 import pygame
-from src.config import WIDTH, HEIGHT, UI_HEIGHT, ROWS, CAPTION
+from src.config import WIDTH, HEIGHT, GRID_WIDTH, SIDEBAR_WIDTH, ROWS, CAPTION
 from src.grid import make_grid
 from src.maze_gen import generate_random_maze
 from src.astar import algorithm
 from src.renderer import draw
 
 class AppState:
-    def __init__(self, grid_width, ui_height):
+    def __init__(self, grid_width, sidebar_width):
         self.grid_width = grid_width
-        self.ui_height = ui_height
+        self.sidebar_width = sidebar_width
         
-        # Posicionamiento del slider en el panel de control
-        self.slider_rect = pygame.Rect(120, grid_width + 19, 150, 8)
+        # Posicionamiento del slider en la barra lateral
+        slider_x = grid_width + 20
+        self.slider_rect = pygame.Rect(slider_x, 320, 210, 8)
         self.slider_handle_radius = 8
         self.slider_val = 0.8  # Valor entre 0.0 y 1.0 (80% velocidad por defecto)
         self.dragging = False
         
-        # Posicionamiento de botones en el panel de control
-        self.start_rect = pygame.Rect(300, grid_width + 12, 130, 36)
-        self.reset_rect = pygame.Rect(450, grid_width + 12, 130, 36)
+        # Posicionamiento de botones en la barra lateral
+        self.start_rect = pygame.Rect(slider_x, 420, 210, 40)
+        self.reset_rect = pygame.Rect(slider_x, 480, 210, 40)
         
         self.is_running = False
+        self.is_paused = False
         self.wants_reset = False
         self.path_found = None
 
@@ -49,8 +51,8 @@ def run_algorithm(win, grid, start, end, app_state):
         for spot in row:
             spot.update_neighbors(grid)
             
-    # Ejecutar algoritmo
-    found = algorithm(lambda: draw(win, grid, ROWS, WIDTH, app_state), grid, start, end, app_state)
+    # Ejecutar algoritmo (pasando GRID_WIDTH en lugar de WIDTH)
+    found = algorithm(lambda: draw(win, grid, ROWS, GRID_WIDTH, app_state), grid, start, end, app_state)
     
     app_state.is_running = False
     if app_state.wants_reset:
@@ -67,12 +69,12 @@ def main():
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption(CAPTION)
 
-    grid = make_grid(ROWS, WIDTH)
-    app_state = AppState(WIDTH, UI_HEIGHT)
+    grid = make_grid(ROWS, GRID_WIDTH)
+    app_state = AppState(GRID_WIDTH, SIDEBAR_WIDTH)
 
     # Definir inicio (arriba a la izquierda) y meta (abajo a la derecha) estáticos
     start = grid[1][1]
-    end = grid[ROWS - 2][ROWS - 2]
+    end = grid[ROWS - 3][ROWS - 3]
     
     start.make_start()
     end.make_end()
@@ -84,7 +86,7 @@ def main():
 
     run = True
     while run:
-        draw(win, grid, ROWS, WIDTH, app_state)
+        draw(win, grid, ROWS, GRID_WIDTH, app_state)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -133,4 +135,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

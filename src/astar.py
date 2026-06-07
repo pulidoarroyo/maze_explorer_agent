@@ -54,6 +54,9 @@ def algorithm(draw, grid, start, end, app_state):
                     )
                     if slider_click_area.collidepoint(pos):
                         app_state.dragging = True
+                    # Permitir pausar a la mitad de la búsqueda
+                    elif app_state.start_rect.collidepoint(pos):
+                        app_state.is_paused = True
                     # Permitir reiniciar (cancelar) a la mitad de la búsqueda
                     elif app_state.reset_rect.collidepoint(pos):
                         app_state.is_running = False
@@ -70,11 +73,56 @@ def algorithm(draw, grid, start, end, app_state):
                     app_state.update_slider(mouse_x)
 
             if event.type == pygame.KEYDOWN:
+                # Pausar con la tecla ESPACIO
+                if event.key == pygame.K_SPACE:
+                    app_state.is_paused = True
                 # Permitir cancelar con la tecla R
-                if event.key == pygame.K_r:
+                elif event.key == pygame.K_r:
                     app_state.is_running = False
                     app_state.wants_reset = True
                     return False
+
+        # Si se pausó, bloquear en un bucle esperando reanudación o cancelación
+        while app_state.is_paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        pos = pygame.mouse.get_pos()
+                        slider_click_area = pygame.Rect(
+                            app_state.slider_rect.x,
+                            app_state.slider_rect.y - 5,
+                            app_state.slider_rect.width,
+                            app_state.slider_rect.height + 10
+                        )
+                        if slider_click_area.collidepoint(pos):
+                            app_state.dragging = True
+                        elif app_state.start_rect.collidepoint(pos):
+                            app_state.is_paused = False
+                        elif app_state.reset_rect.collidepoint(pos):
+                            app_state.is_running = False
+                            app_state.is_paused = False
+                            app_state.wants_reset = True
+                            return False
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        app_state.dragging = False
+                if event.type == pygame.MOUSEMOTION:
+                    if app_state.dragging:
+                        mouse_x, _ = pygame.mouse.get_pos()
+                        app_state.update_slider(mouse_x)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        app_state.is_paused = False
+                    elif event.key == pygame.K_r:
+                        app_state.is_running = False
+                        app_state.is_paused = False
+                        app_state.wants_reset = True
+                        return False
+            draw()
+            pygame.time.delay(30)
 
         current = open_set.get()[2]
         open_set_hash.remove(current)
