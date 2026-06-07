@@ -97,7 +97,10 @@ def algorithm(draw, grid, start, end, app_state):
                     count += 1
                     open_set.put((f_score[neighbor], count, neighbor))
                     open_set_hash.add(neighbor)
-                    neighbor.make_open()
+                    
+                    # CORRECCIÓN: Solo se hace verde si NO es la meta
+                    if neighbor != end:
+                        neighbor.make_open()
 
         draw() # Visualización en tiempo real de la exploración
 
@@ -109,4 +112,3 @@ def algorithm(draw, grid, start, end, app_state):
             pygame.time.delay(app_state.get_delay())
 
     return False # No se encontró ruta
-
