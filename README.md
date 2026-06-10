@@ -1,4 +1,4 @@
-# 🧭 Maze Explorer Agent — A* Pathfinding Visualizer
+# Maze Explorer Agent by Karliani Scholtz & Alejandro Pulido.
 
 An interactive, real-time visualization of the **A\* (A-Star)** pathfinding algorithm built with **Python** and **Pygame**. Watch the agent intelligently explore a randomly generated maze and find the shortest path from start to goal.
 
@@ -16,15 +16,17 @@ An interactive, real-time visualization of the **A\* (A-Star)** pathfinding algo
 
 ## 🖼️ Color Legend
 
-| Color | Meaning |
-|---|---|
-| 🔵 Blue | Start node |
-| 🟣 Violet | End / Goal node |
-| 🟡 Gold | Optimal path |
-| 🟢 Light Green | Open set (frontier being explored) |
-| 🔴 Tomato Red | Closed set (already explored) |
-| ⬜ Smoke White | Free cell |
-| 🟫 Dark Gray | Wall / obstacle |
+| Emoji | RGB Color | Meaning and Theme |
+
+🟢 | `START_COLOR` (50, 200, 80) | **Start:** Starting point (hero green) |
+
+👑 | `END_COLOR` (220, 160, 0) | **Goal:** Final objective (chest gold) |
+
+⭐ | `PATH_COLOR` (255, 200, 0) | **Route:** Optimal path found (bright gold) |
+
+🧪 | `OPEN_COLOR` (80, 160, 60) | **Border:** Nodes discovered in exploration (magic green) |
+
+🌌 | `CLOSED_COLOR` (30, 60, 90) | **Explored:** Nodes already evaluated (dungeon blue) |
 
 ---
 
@@ -63,7 +65,7 @@ python main.py
 
 | Key | Action |
 |---|---|
-| `SPACE` | Run the A\* algorithm on the current maze |
+| `SPACE` | Run or Pause the A\* algorithm on the current maze |
 | `R` | Generate a new random maze and reset |
 | ✖ Window close | Quit the application |
 
@@ -102,9 +104,3 @@ maze_explorer_agent/
     ├── maze_gen.py         # Maze generation algorithms (currently random walls)
     └── renderer.py         # Pygame drawing functions for rendering grid and nodes
 ```
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
